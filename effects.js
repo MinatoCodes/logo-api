@@ -31,4 +31,5 @@ const effects = [
   }
 ];
 
-export default effects;
+module.exports = effects;
+  
