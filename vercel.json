@@ -1,0 +1,22 @@
+{
+  "functions": {
+    "api/generate.ts": {
+      "maxDuration": 45,
+      "memory": 2048
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/generate",
+      "destination": "/api/generate.ts"
+    },
+    {
+      "source": "/effect",
+      "destination": "/api/effect.ts"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/health.ts"
+    }
+  ]
+}
