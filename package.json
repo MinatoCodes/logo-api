@@ -1,18 +1,13 @@
 {
   "name": "textpro-api",
   "version": "1.0.0",
-  "type": "module",
   "main": "generate.js",
   "scripts": {
-    "start": "vercel dev"
+    "dev": "vercel dev"
   },
   "dependencies": {
     "@sparticuz/chromium": "^112.0.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.1"
-  },
-  "devDependencies": {
-    "@vercel/node": "^3.0.0",
-    "typescript": "^5.0.0"
   }
 }
