@@ -2,7 +2,7 @@
   "name": "textpro-api",
   "version": "1.0.0",
   "type": "module",
-  "main": "generate.ts",
+  "main": "generate.js",
   "scripts": {
     "start": "vercel dev"
   },
