@@ -1,32 +1,29 @@
-const puppeteerExtra = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const chromium = require('@sparticuz/chromium');
+const express = require('express');
+const router = express.Router();
 const effects = require('../effects');
 
+const puppeteerExtra = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteerExtra.use(StealthPlugin());
 
-module.exports = async (req, res) => {
-  const { text, id } = req.query;
+router.get('/', async (req, res) => {
+  const { id, text } = req.query;
 
-  if (!text || typeof text !== 'string') {
-    return res.status(400).json({ error: 'Missing or invalid "text" query.' });
+  if (!text || !id) {
+    return res.status(400).json({ error: 'Missing required query: id and text' });
   }
 
-  const numericId = parseInt(id, 10);
-  const effect = effects.find(e => e.id === numericId);
-
+  const effect = effects.find(e => e.id === parseInt(id));
   if (!effect) {
-    return res.status(400).json({ error: `Invalid effect ID. Try one from 0 to ${effects.length - 1}` });
+    return res.status(404).json({ error: 'Invalid effect ID' });
   }
 
-  let browser = null;
+  let browser;
 
   try {
     browser = await puppeteerExtra.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
@@ -35,37 +32,29 @@ module.exports = async (req, res) => {
     await page.type('#text-0', text);
     await page.click('#create_effect');
 
-    const resultSelector = '.share_image #link-image';
-    await page.waitForFunction(
-      selector => {
-        const el = document.querySelector(selector);
-        return el && el.textContent.includes('https://') && el.textContent.includes('.jpg');
-      },
-      { timeout: 45000 },
-      resultSelector
-    );
+    await page.waitForFunction(() => {
+      const el = document.querySelector('.share_image #link-image');
+      return el && el.textContent.includes('.jpg');
+    }, { timeout: 45000 });
 
-    const resultText = await page.$eval(resultSelector, el => el.textContent);
-    const match = resultText.match(/(https?:\/\/\S+\.jpg)/);
+    const result = await page.$eval('.share_image #link-image', el => el.textContent);
+    const match = result.match(/(https?:\/\/\S+\.jpg)/);
     const imageUrl = match ? match[0] : null;
 
-    if (!imageUrl) throw new Error('Failed to extract image URL.');
+    if (!imageUrl) throw new Error('Image generation failed.');
 
-    res.status(200).json({
+    res.json({
       success: true,
       author: 'Minato Namikaze',
-      effect: {
-        id: effect.id,
-        title: effect.title,
-        url: effect.url
-      },
+      effect: effect.title,
       image: imageUrl
     });
-
   } catch (err) {
-    res.status(500).json({ error: err.message || 'Unknown error occurred.' });
+    res.status(500).json({ error: err.message });
   } finally {
     if (browser) await browser.close();
   }
-};
-  
+});
+
+module.exports = router;
+      
