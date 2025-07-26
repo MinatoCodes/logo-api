@@ -1,10 +1,9 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import effects from '../effects';
+const effects = require('../effects');
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = (req, res) => {
   res.status(200).json({
     success: true,
     total: effects.length,
     effects
   });
-}
+};
